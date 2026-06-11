@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminale</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+        input { padding: 15px; margin-bottom: 10px; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
+        button { padding: 15px 30px; border-radius: 5px; border: none; background: #22c55e; color: white; font-weight: bold; cursor: pointer; }
+        #feedback { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <input type="text" id="badge" placeholder="ID Badge">
+    <button id="btnIngresso">INGRESSO</button>
+    <div id="feedback"></div>
+
+    <script>
+        const supabase = supabase.createClient("https://bzquqzgaaszguzcmvgbl.supabase.co", "Sb_publishable_0RTF7LZGsbwmPafqzlz1yw_SatdIruX");
+
+        document.getElementById('btnIngresso').addEventListener('click', async () => {
+            const badge = document.getElementById('badge').value.trim();
+            const feedback = document.getElementById('feedback');
+            feedback.innerText = "Verifica...";
+
+            const { data, error } = await supabase.from('Operai').select('*').eq('badge_id', badge).single();
+
+            if (error || !data || !data.approvato) {
+                feedback.innerText = "❌ Errore: Badge non valido.";
+            } else {
+                const { error: insError } = await supabase.from('timbrature').insert([{ badge_id: badge, tipo: 'INGRESSO', nome_operaio: data.nome }]);
+                if (insError) {
+                    feedback.innerText = "Errore salvataggio: " + insError.message;
+                } else {
+                    feedback.innerText = "✔ Benvenuto " + data.nome;
+                    document.getElementById('badge').value = "";
+                }
+            }
+        });
+    </script>
+</body>
+</html>
