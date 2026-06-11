@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body style="background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+    
+    <input type="text" id="badge" placeholder="ID Badge" style="padding: 15px; font-size: 18px; margin-bottom: 20px;">
+    
+    <button id="btnIngresso" 
+            onclick="testPulsante()" 
+            style="padding: 20px 40px; font-size: 20px; background: red; color: white; border: none; border-radius: 10px;">
+        PREMI PER TESTARE
+    </button>
+
+    <div id="feedback" style="margin-top: 20px; font-size: 24px;"></div>
+
+    <script>
+        function testPulsante() {
+            // Se questo alert appare, il tasto funziona al 100%
+            alert("Il tasto funziona!");
+            document.getElementById('feedback').innerText = "Test completato con successo!";
+        }
+    </script>
+</body>
+</html>
