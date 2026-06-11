@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officine Meccaniche Lombardi S.R.L. - Registrazione</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        .logo-area {
+            color: #38bdf8;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: left;
+            border: 1px solid #334155;
+        }
+
+        .card-title {
+            color: #f1f5f9;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #1d4ed8;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background: #1e40af;
+        }
+
+        /* Schermata di successo */
+        .hidden {
+            display: none !important;
+        }
+
+        #success-screen {
+            padding: 40px 20px;
+        }
+
+        .success-icon {
+            font-size: 50px;
+            color: #22c55e;
+            margin-bottom: 20px;
+        }
+
+        #success-screen h2 {
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        #success-screen p {
+            color: #94a3b8;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="form-screen">
+            <div class="logo-area">OFFICINE MECCANICHE LOMBARDI S.R.L.</div>
+            <h1>Benvenuto</h1>
+            <p class="subtitle">Crea il tuo profilo per accedere all'app</p>
+
+            <form id="registration-form" onsubmit="inviaDati(event); return false;">
+                <div class="card">
+                    <div class="card-title">Dati personali</div>
+
+                    <div class="form-group">
+                        <label for="nome">Nome</label>
+                        <input type="text" id="nome" required placeholder="Inserisci il tuo nome">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cognome">Cognome</label>
+                        <input type="text" id="cognome" required placeholder="Inserisci il tuo cognome">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Aziendale</label>
+                        <input type="email" id="email" required placeholder="nome@azienda.it">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reparto">Reparto</label>
+                        <select id="reparto" required>
+                            <option value="" disabled selected>Seleziona il tuo reparto</option>
+                            <option value="TRASFORMAZIONE">TRASFORMAZIONE</option>
+                            <option value="CONFEZIONAMENTO">CONFEZIONAMENTO</option>
+                            <option value="REPARTO TECNICO">REPARTO TECNICO</option>
+                            <option value="UFFICI">UFFICI</option>
+                            <option value="LOGISTICA">LOGISTICA</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">INVIA RICHIESTA D'ISCRIZIONE</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="success-screen" class="hidden">
+            <div class="success-icon">✓</div>
+            <h2>Richiesta Inviata!</h2>
+            <p>I tuoi dati sono stati trasmessi con successo.<br>Il tuo profilo sarà attivo non appena l'amministratore avrà approvato la tua richiesta e associato il tuo Badge.</p>
+        </div>
+    </div>
+
+    <script>
+        // Configurazione di Supabase allineata al database attivo bzqu...
+        const SUPABASE_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+        const SUPABASE_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+
+        // Inizializzazione del client Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function inviaDati(event) {
+            // Blocca il comportamento nativo di ricaricamento del form
+            if (event && event.preventDefault) {
+                event.preventDefault();
+            }
+
+            const nome = document.getElementById('nome').value.trim();
+            const cognome = document.getElementById('cognome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const reparto = document.getElementById('reparto').value;
+
+            if (!nome || !cognome || !email || !reparto) {
+                alert("Per favore, compila tutti i campi richiesti!");
+                return false;
+            }
+
+            try {
+                // Inserimento dati nella tabella corretta "Operai"
+                const { data, error } = await supabase
+                    .from('Operai')
+                    .insert([
+                        { 
+                            nome: nome, 
+                            cognome: cognome, 
+                            email: email, 
+                            reparto: reparto,
+                            approvato: false 
+                        }
+                    ]);
+
+                if (error) {
+                    throw error;
+                }
+
+                // Nasconde il form e mostra il messaggio di successo con la spunta verde
+                document.getElementById('form-screen').classList.add('hidden');
+                document.getElementById('success-screen').classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Errore rilevato durante l'invio:", err);
+                alert("Errore Supabase: " + (err.message || err));
+            }
+
+            return false;
+        }
+    </script>
+</body>
+</html>
