@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminale</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+
+    <input type="text" id="badge" placeholder="ID Badge (es: 022)" style="padding: 15px; margin-bottom: 15px; border-radius: 8px; border: none; text-align: center; font-size: 18px; width: 80%; max-width: 300px;">
+    <button id="btnIngresso" style="padding: 15px 30px; border-radius: 8px; border: none; background: #22c55e; color: white; font-weight: bold; cursor: pointer; font-size: 18px;">INGRESSO</button>
+    <div id="feedback" style="margin-top: 20px; font-weight: bold; padding: 10px;"></div>
+
+    <script>
+        // Inizializzazione
+        const supabase = supabase.createClient("https://bzquqzgaaszguzcmvgbl.supabase.co", "Sb_publishable_0RTF7LZGsbwmPafqzlz1yw_SatdIruX");
+
+        document.getElementById('btnIngresso').onclick = async function() {
+            const badge = document.getElementById('badge').value.trim();
+            const feedback = document.getElementById('feedback');
+            
+            feedback.innerText = "Verifica in corso...";
+            
+            try {
+                const { data, error } = await supabase.from('Operai').select('*').eq('badge_id', badge).single();
+
+                if (error) {
+                    feedback.innerText = "Errore DB: " + error.message;
+                } else if (!data || !data.approvato) {
+                    feedback.innerText = "Non autorizzato";
+                } else {
+                    const { error: insError } = await supabase.from('timbrature').insert([{ badge_id: badge, tipo: 'INGRESSO', nome_operaio: data.nome }]);
+                    if (insError) {
+                        feedback.innerText = "Errore salvataggio: " + insError.message;
+                    } else {
+                        feedback.innerText = "✔ Successo! Benvenuto " + data.nome;
+                    }
+                }
+            } catch (err) {
+                feedback.innerText = "Errore critico: " + err.message;
+            }
+        };
+    </script>
+</body>
+</html>
