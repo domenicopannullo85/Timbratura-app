@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body style="background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+
+    <input type="text" id="badge" placeholder="ID Badge" style="padding: 15px; font-size: 18px; margin-bottom: 20px; color: black; border-radius: 8px; border: none;">
+    
+    <button id="btnIngresso" 
+            onclick="avvia()" 
+            style="padding: 20px 40px; font-size: 20px; background: #22c55e; color: white; border: none; border-radius: 10px; cursor: pointer;">
+        INGRESSO
+    </button>
+
+    <div id="feedback" style="margin-top: 20px; font-size: 18px; text-align: center;"></div>
+
+    <script>
+        const client = supabase.createClient("https://bzquqzgaaszguzcmvgbl.supabase.co", "TUA_CHIAVE_API_QUI");
+
+        function avvia() {
+            const feedback = document.getElementById('feedback');
+            const badge = document.getElementById('badge').value.trim();
+            
+            if(!badge) { feedback.innerText = "Inserisci un ID!"; return; }
+            feedback.innerText = "Registrazione in corso...";
+
+            client.from('Operai').select('*').eq('badge_id', badge).single()
+                .then(res => {
+                    if (res.error) {
+                        feedback.innerText = "Errore: " + res.error.message;
+                    } else {
+                        salvaTimbrata(badge, res.data.nome);
+                    }
+                });
+        }
+
+        async function salvaTimbrata(badge, nome) {
+            const feedback = document.getElementById('feedback');
+            
+            const { error } = await client.from('timbrature').insert([
+                { badge_id: badge, nome_operaio: nome, tipo: 'ENTRATA' }
+            ]);
+
+            if (error) {
+                feedback.innerText = "Errore salvataggio: " + error.message;
+            } else {
+                feedback.innerText = "✅ Timbratura salvata per: " + nome;
+                document.getElementById('badge').value = "";
+            }
+        }
+    </script>
+</body>
+</html>
