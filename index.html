@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <input type="text" id="badge" placeholder="Inserisci ID">
+    <button onclick="testTasto()" style="padding: 20px; font-size: 20px;">TEST INGRESSO</button>
+    <p id="risultato" style="font-size: 24px; color: red;"></p>
+
+    <script>
+        function testTasto() {
+            const val = document.getElementById('badge').value;
+            document.getElementById('risultato').innerText = "Il tasto funziona! Hai inserito: " + val;
+            alert("Il tasto è stato premuto!");
+        }
+    </script>
+</body>
+</html>
