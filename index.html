@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminale Marcatore - Officine Lombardi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .terminal { width: 100%; max-width: 400px; background-color: #1e293b; border-radius: 16px; padding: 24px; text-align: center; border: 1px solid #334155; }
+        .input-field { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: white; text-align: center; font-size: 18px; margin: 20px 0; }
+        .btn { width: 48%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-ingresso { background-color: #22c55e; color: #000; }
+        .btn-uscita { background-color: #ef4444; color: #fff; }
+        #feedback { margin-top: 20px; padding: 10px; border-radius: 8px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="terminal">
+    <h1>Officine Lombardi</h1>
+    <p>Inserisci ID Badge</p>
+    <input type="text" id="badgeInput" class="input-field" placeholder="Esempio: 022">
+    <div>
+        <button class="btn btn-ingresso" onclick="timbro('INGRESSO')">INGRESSO</button>
+        <button class="btn btn-uscita" onclick="timbro('USCITA')">USCITA</button>
+    </div>
+    <div id="feedback"></div>
+</div>
+
+<script>
+    // Inserisci qui le tue credenziali Supabase (le trovi nella dashboard)
+    const supabase = supabase.createClient("https://bzquqzgaaszguzcmvgbl.supabase.co", "Sb_publishable_0RTF7LZGsbwmPafqzlz1yw_SatdIruX");
+
+    async function timbro(tipo) {
+        const badge = document.getElementById('badgeInput').value.trim();
+        const feedback = document.getElementById('feedback');
+        
+        if (!badge) return;
+
+        // Cerca l'operaio (prova sia come stringa che come numero se necessario)
+        const { data: operaio, error } = await supabase
+            .from('Operai')
+            .select('*')
+            .or(`badge_id.eq.${badge},badge_id.eq.${parseInt(badge)}`)
+            .eq('approvato', true)
+            .single();
+
+        if (error || !operaio) {
+            feedback.style.display = "block";
+            feedback.style.backgroundColor = "#7f1d1d";
+            feedback.innerText = "Badge non trovato o non approvato.";
+            return;
+        }
+
+        // Salva la timbratura
+        const { error: insError } = await supabase.from('timbrature').insert([
+            { badge_id: badge, tipo: tipo, nome_operaio: `${operaio.nome} ${operaio.cognome}` }
+        ]);
+
+        if (insError) {
+            feedback.style.display = "block";
+            feedback.innerText = "Errore salvataggio: " + insError.message;
+        } else {
+            feedback.style.display = "block";
+            feedback.style.backgroundColor = "#065f46";
+            feedback.innerText = "✔ " + tipo + " registrato per " + operaio.nome;
+            document.getElementById('badgeInput').value = '';
+        }
+    }
+</script>
+</body>
+</html>
