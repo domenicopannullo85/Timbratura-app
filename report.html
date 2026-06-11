@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Officine Lombardi - Gestione Presenze</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 450px; background: #1e293b; border-radius: 16px; padding: 24px; }
+        .header { text-align: center; margin-bottom: 24px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #111827; color: #94a3b8; cursor: pointer; }
+        .tab-btn.active { background: #38bdf8; color: #000; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card { background: #0f172a; border-left: 4px solid #38bdf8; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .no-data { text-align: center; color: #94a3b8; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1>Registro Presenze</h1></div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('live')">🔴 LIVE</button>
+            <button class="tab-btn" onclick="switchTab('operai')">👥 OPERAI</button>
+        </div>
+        <div id="live" class="tab-content active"><div id="liveContainer" class="no-data">Caricamento...</div></div>
+        <div id="operai" class="tab-content"><div id="operaiContainer" class="no-data">Caricamento...</div></div>
+    </div>
+
+    <script>
+        const supabase = supabase.createClient("https://bzquqzgaaszguzcmvgbl.supabase.co", "Sb_publishable_0RTF7LZGsbwmPafqzlz1yw_SatdIruX");
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+            if(id === 'live') loadLive(); else loadOperai();
+        }
+
+        async function loadLive() {
+            const cont = document.getElementById('liveContainer');
+            // Cerca in tutte le varianti di nome tabella
+            for (let t of ['timbrature', 'Timbrature', 'TIMBRATURE']) {
+                let {data, error} = await supabase.from(t).select('*').order('created_at', {ascending: false});
+                if (!error) {
+                    cont.innerHTML = data.length ? data.map(i => `<div class="card"><strong>${i.nome_operaio || 'Operaio'}</strong><br>${i.tipo} - ${new Date(i.created_at).toLocaleTimeString()}</div>`).join('') : 'Nessun dato';
+                    return;
+                }
+            }
+            cont.innerHTML = "Errore: tabella non trovata.";
+        }
+
+        async function loadOperai() {
+            const cont = document.getElementById('operaiContainer');
+            for (let t of ['Operai', 'operai', 'OPERAI']) {
+                let {data, error} = await supabase.from(t).select('*');
+                if (!error) {
+                    cont.innerHTML = data.length ? data.map(i => `<div class="card"><strong>${i.nome || ''} ${i.cognome || ''}</strong><br>Badge: ${i.badge_id || i.Badge_id}</div>`).join('') : 'Nessun operaio';
+                    return;
+                }
+            }
+            cont.innerHTML = "Errore: tabella anagrafica non trovata.";
+        }
+
+        loadLive();
+    </script>
+</body>
+</html>
