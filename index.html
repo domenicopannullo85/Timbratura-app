@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officine Meccaniche Lombardi - Timbratura</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <div class="bg-slate-800 text-white text-center py-3 font-semibold shadow-md flex justify-center items-center gap-2 cursor-pointer hover:bg-slate-700 transition" onclick="toggleVisuale()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+        </svg>
+        <span id="btn-visuale">PASSA A VISUALE ADMIN</span>
+    </div>
+
+    <div class="flex-1 flex flex-col justify-start items-center p-4 w-full max-w-md mx-auto">
+        
+        <div id="vista-operaio" class="w-full space-y-6">
+            
+            <div id="schermata-registrazione" class="bg-gradient-to-b from-blue-600 to-blue-800 rounded-3xl p-6 text-white text-center shadow-xl">
+                <div class="mx-auto bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    </svg>
+                </div>
+                <p class="text-sm uppercase tracking-widest opacity-80 font-medium">Officine Meccaniche Lombardi S.r.l.</p>
+                <h1 class="text-3xl font-bold mt-1 mb-2">Benvenuto</h1>
+                <p class="text-sm text-blue-100 mb-6">Crea il tuo profilo per accedere all'app</p>
+
+                <div class="bg-white rounded-2xl p-5 text-gray-800 text-left space-y-4 shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-700 border-b pb-2">Dati personali</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Nome</label>
+                        <input type="text" id="reg-nome" placeholder="Es. Marco" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Cognome</label>
+                        <input type="text" id="reg-cognome" placeholder="Es. Rossi" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Email aziendale</label>
+                        <input type="email" id="reg-email" placeholder="mario.rossi@officine.it" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Reparto</label>
+                        <select id="reg-reparto" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-gray-700">
+                            <option value="TRASFORMAZIONE">TRASFORMAZIONE</option>
+                            <option value="CONFEZIONAMENTO">CONFEZIONAMENTO</option>
+                            <option value="REPARTO TECNICO">REPARTO TECNICO</option>
+                            <option value="UFFICI">UFFICI</option>
+                            <option value="LOGISTICA">LOGISTICA</option>
+                        </select>
+                    </div>
+
+                    <button onclick="inviaRichiesta()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-md mt-4 uppercase text-sm tracking-wider">
+                        Invia Richiesta d'Iscrizione
+                    </button>
+                </div>
+            </div>
+
+            <div id="schermata-attesa" class="hidden bg-white rounded-3xl p-8 text-center shadow-xl border border-gray-100 space-y-6">
+                <div class="mx-auto w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Richiesta Inviata</h2>
+                    <p class="text-gray-500 mt-2 px-4">Il tuo profilo è in fase di verifica. L'amministratore assegnerà a breve il tuo badge aziendale.</p>
+                </div>
+                <div class="bg-amber-50 text-amber-800 text-xs font-semibold p-3 rounded-xl border border-amber-200 uppercase tracking-wider">
+                    Stato: In attesa di approvazione direzione
+                </div>
+            </div>
+
+            <div id="schermata-home" class="hidden space-y-4">
+                <div class="bg-gradient-to-b from-slate-700 to-slate-900 rounded-3xl p-6 text-white text-center shadow-xl">
+                    <p id="home-operaio-nome" class="text-lg font-bold tracking-wide">---</p>
+                    <p id="home-operaio-reparto" class="text-xs uppercase opacity-75 font-medium tracking-widest mt-0.5">REPARTO: ---</p>
+                    
+                    <div class="my-6">
+                        <span class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold px-4 py-2 rounded-full uppercase tracking-widest">
+                            Fuori Servizio
+                        </span>
+                    </div>
+
+                    <div class="bg-white/10 rounded-2xl p-4 text-left border border-white/10 space-y-2">
+                        <p class="text-xs font-bold uppercase opacity-60 tracking-wider">Configurazione Accesso Aziendale</p>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-sm opacity-80">Codice Badge Fisico:</span>
+                            <span id="info-badge-id" class="font-mono font-bold bg-white/20 px-2 py-0.5 rounded text-sm">#00000</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1">
+                            <span class="text-sm opacity-80">Supporto Abilitato:</span>
+                            <span id="info-badge-tipo" class="font-bold text-sm text-blue-300 uppercase">---</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center text-blue-800 text-sm font-medium">
+                    Avvicina il dispositivo (Tessera o Telefono NFC) al lettore dell'officina per timbrare l'Ingresso o l'Uscita.
+                </div>
+            </div>
+        </div>
+
+
+        <div id="vista-admin" class="w-full hidden space-y-6">
+            <div class="border-b pb-2 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Pannello Direzione</h2>
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md uppercase">Admin</span>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-md border border-gray-100 space-y-4">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Richieste d'accesso in attesa</h3>
+                
+                <div id="lista-richieste-vuota" class="text-center py-6 text-gray-400 text-sm">
+                    Nessuna richiesta di iscrizione in sospeso.
+                </div>
+
+                <div id="scheda-richiesta-attiva" class="hidden border rounded-2xl p-4 bg-gray-50 space-y-4">
+                    <div class="border-b pb-2">
+                        <p class="font-bold text-gray-800 text-lg" id="admin-req-nome">---</p>
+                        <p class="text-xs text-gray-500" id="admin-req-email">---</p>
+                        <p class="text-xs font-bold text-blue-600 mt-1 uppercase tracking-wider" id="admin-req-reparto">---</p>
+                    </div>
+
+                    <div class="space-y-3 bg-white p-3 rounded-xl border">
+                        <p class="text-xs font-bold text-gray-600 uppercase tracking-wide">Configurazione Badge d'Ingresso</p>
+                        
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500">Inserisci Numero Badge Reale (Manuale)</label>
+                            <input type="text" id="admin-input-badge-id" placeholder="Es. 20" class="w-full mt-1 p-2 border rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500">Tipo di Supporto Abilitato</label>
+                            <select id="admin-input-badge-tipo" class="w-full mt-1 p-2 border rounded-lg text-sm bg-gray-50 font-medium text-gray-700">
+                                <option value="SMARTPHONE NFC">Smartphone con antenna NFC</option>
+                                <option value="TESSERA FISICA RFID">Tessera Fisica RFID / Badge</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <button onclick="rifiutaProfilo()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 rounded-xl text-sm transition">
+                            Rifiuta
+                        </button>
+                        <button onclick="approvaProfilo()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-sm">
+                            Approva ed Abilita
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-md border border-gray-100">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Registro Dipendenti Attivi</h3>
+                <div class="text-xs text-gray-400 text-center py-4" id="registro-vuoto">
+                    Nessun operaio ancora registrato nel sistema.
+                </div>
+                <div id="tabella-dipendenti" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://iyvdxbbywumwzshwunse.supabase.co";
+        const SUPABASE_KEY = "eyJhY2Nlc3NfVGNva2VuX3R5cGUiOiJhY2Nlc3MiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5dmR4YmJ5d3Vtd3pzaHd1bnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMzU2MTYsImV4cCI6MjA1ODcxMTYxNn0.p4lwBT2HWVEGge8lQvYu_rA1kO4WFxtbvCFDe1kRxeY";
+        
+        // CORREZIONE: usiamo direttamente il client caricato dalla libreria
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let utenteCorrente = null;
+        let vistaAttuale = "operaio";
+
+        function toggleVisuale() {
+            const btn = document.getElementById("btn-visuale");
+            const vOperaio = document.getElementById("vista-operaio");
+            const vAdmin = document.getElementById("vista-admin");
+
+            if (vistaAttuale === "operaio") {
+                vistaAttuale = "admin";
+                btn.innerText = "PASSA A VISUALE OPERAIO";
+                vOperaio.classList.add("hidden");
+                vAdmin.classList.remove("hidden");
+                scaricaDatiAdmin();
+            } else {
+                vistaAttuale = "operaio";
+                btn.innerText = "PASSA A VISUALE ADMIN";
+                vAdmin.classList.add("hidden");
+                vOperaio.classList.remove("hidden");
+                aggiornaInterfacciaOperaio();
+            }
+        }
+
+        async function inviaRichiesta() {
+            const nome = document.getElementById("reg-nome").value.trim();
+            const cognome = document.getElementById("reg-cognome").value.trim();
+            const email = document.getElementById("reg-email").value.trim();
+            const reparto = document.getElementById("reg-reparto").value;
+
+            if (!nome || !cognome || !email) {
+                alert("Per favore, compila tutti i campi richiesti!");
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('operai')
+                    .insert([{ 
+                        nome: nome.toUpperCase(), 
+                        cognome: cognome.toUpperCase(), 
+                        email: email, 
+                        reparto: reparto,
+                        approvato: false 
+                    }])
+                    .select();
+
+                if (error) {
+                    alert("Errore nell'invio a Supabase: " + error.message);
+                } else {
+                    utenteCorrente = data[0];
+                    aggiornaInterfacciaOperaio();
+                }
+            } catch (err) {
+                alert("Errore imprevisto: " + err.message);
+            }
+        }
+
+        function aggiornaInterfacciaOperaio() {
+            const schRegistrazione = document.getElementById("schermata-registrazione");
+            const schAttesa = document.getElementById("schermata-attesa");
+            const schHome = document.getElementById("schermata-home");
+
+            if (!utenteCorrente) {
+                schRegistrazione.classList.remove("hidden");
+                schAttesa.classList.add("hidden");
+                schHome.classList.add("hidden");
+            } else if (utenteCorrente.approvato === false) {
+                schRegistrazione.classList.add("hidden");
+                schAttesa.classList.remove("hidden");
+                schHome.classList.add("hidden");
+            } else {
+                schRegistrazione.classList.add("hidden");
+                schAttesa.classList.add("hidden");
+                schHome.classList.remove("hidden");
+
+                document.getElementById("home-operaio-nome").innerText = `${utenteCorrente.nome} ${utenteCorrente.cognome}`;
+                document.getElementById("home-operaio-reparto").innerText = `REPARTO: ${utenteCorrente.reparto}`;
+                document.getElementById("info-badge-id").innerText = `#${utenteCorrente.badge_id}`;
+                document.getElementById("info-badge-tipo").innerText = utenteCorrente.badge_tipo;
+            }
+        }
+
+        async function scaricaDatiAdmin() {
+            try {
+                const { data: inAttesa, error: err1 } = await supabase
+                    .from('operai')
+                    .select('*')
+                    .eq('approvato', false);
+
+                const vuoto = document.getElementById("lista-richieste-vuota");
+                const scheda = document.getElementById("scheda-richiesta-attiva");
+
+                if (!err1 && inAttesa && inAttesa.length > 0) {
+                    utenteCorrente = inAttesa[0];
+                    vuoto.classList.add("hidden");
+                    scheda.classList.remove("hidden");
+                    document.getElementById("admin-req-nome").innerText = `${utenteCorrente.nome} ${utenteCorrente.cognome}`;
+                    document.getElementById("admin-req-email").innerText = utenteCorrente.email;
+                    document.getElementById("admin-req-reparto").innerText = `Reparto: ${utenteCorrente.reparto}`;
+                } else {
+                    vuoto.classList.remove("hidden");
+                    scheda.classList.add("hidden");
+                }
+
+                const { data: approvati, error: err2 } = await supabase
+                    .from('operai')
+                    .select('*')
+                    .eq('approvato', true);
+
+                const regVuoto = document.getElementById("registro-vuoto");
+                const tabDipendenti = document.getElementById("tabella-dipendenti");
+                tabDipendenti.innerHTML = "";
+
+                if (!err2 && approvati && approvati.length > 0) {
+                    regVuoto.classList.add("hidden");
+                    approvati.forEach(op => {
+                        tabDipendenti.innerHTML += `
+                            <div class="flex justify-between items-center bg-emerald-50 border border-emerald-100 p-3 rounded-xl mb-2">
+                                <div>
+                                    <p class="font-bold text-gray-800 text-sm">${op.nome} ${op.cognome}</p>
+                                    <p class="text-[10px] uppercase font-bold text-gray-400">${op.reparto}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-mono text-xs font-bold bg-white border px-2 py-0.5 rounded shadow-sm text-gray-700">Badge: #${op.badge_id}</span>
+                                    <p class="text-[9px] text-emerald-700 font-bold mt-1 uppercase tracking-wide">${op.badge_tipo}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    regVuoto.classList.remove("hidden");
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function approvaProfilo() {
+            const badgeIdInput = document.getElementById("admin-input-badge-id").value.trim();
+            const badgeTipoInput = document.getElementById("admin-input-badge-tipo").value;
+
+            if (!badgeIdInput) {
+                alert("Devi inserire il numero di badge da assegnare!");
+                return;
+            }
+
+            if (utenteCorrente) {
+                const { error } = await supabase
+                    .from('operai')
+                    .update({ 
+                        approvato: true, 
+                        badge_id: badgeIdInput, 
+                        badge_tipo: badgeTipoInput 
+                    })
+                    .eq('id', utenteCorrente.id);
+
+                if (error) {
+                    alert("Errore nell'approvazione: " + error.message);
+                } else {
+                    alert("Profilo approvato e salvato in database!");
+                    document.getElementById("admin-input-badge-id").value = "";
+                    scaricaDatiAdmin();
+                }
+            }
+        }
+
+        async function rifiutaProfilo() {
+            if (utenteCorrente && confirm("Vuoi davvero eliminare questa richiesta?")) {
+                const { error } = await supabase
+                    .from('operai')
+                    .delete()
+                    .eq('id', utenteCorrente.id);
+
+                if (error) {
+                    alert("Errore nell'eliminazione: " + error.message);
+                } else {
+                    utenteCorrente = null;
+                    scaricaDatiAdmin();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
