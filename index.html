@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>Timbratura Officine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    #app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+    .btn{border:none;cursor:pointer;font-family:inherit;font-weight:700}
+    .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:12px}
+    .header{background:linear-gradient(160deg,#1e3a5f 0%,#2563eb 100%);padding:24px 20px 20px;color:#fff}
+    .header h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:8px 0 4px}
+    .header p{font-size:14px;opacity:.8}
+    .header .co{font-size:13px;opacity:.8;display:flex;align-items:center;gap:6px}
+    .body{padding:16px}
+    .navbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:repeat(4,1fr);z-index:50}
+    .nav-btn{display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;background:none;border:none;cursor:pointer;gap:2px;font-size:10px;font-family:inherit}
+    .nav-btn .ico{font-size:22px}
+    .admin-bar{width:100%;border:none;cursor:pointer;padding:13px;color:#fff;font-weight:700;font-size:13px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:0 0 18px 18px}
+    input,select,textarea{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:15px;font-family:inherit;color:#1e293b;background:#fff;outline:none}
+    textarea{min-height:90px;resize:vertical}
+    .lbl{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px;display:block}
+    .badge{font-size:12px;font-weight:700;border-radius:20px;padding:3px 12px}
+    .sec-label{font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin:8px 0}
+    .screen{display:none;flex:1;flex-direction:column;padding-bottom:80px}
+    .screen.active{display:flex}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .cal-day{border:none;background:transparent;cursor:pointer;border-radius:50%;width:36px;height:36px;margin:2px auto;display:flex;align-items:center;justify-content:center;font-size:14px;font-family:inherit}
+    .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0}
+    .progress{background:#f1f5f9;border-radius:20px;height:6px;overflow:hidden;margin-top:8px}
+    .progress-bar{height:100%;border-radius:20px}
+    .field-wrap{margin-bottom:14px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Admin bar -->
+  <button class="admin-bar btn" id="adminBar" onclick="toggleAdmin()" style="background:#1e3a5f">
+    <span>👤</span> PASSA A VISUALE ADMIN
+  </button>
+
+  <!-- OPERAIO SCREENS -->
+  <div id="emp-screens">
+    <!-- Turno -->
+    <div class="screen active" id="scr-turno">
+      <div class="header">
+        <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+        <h1 id="greeting">Ciao!</h1>
+        <p id="dateLabel"></p>
+      </div>
+      <div class="body">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Stato attuale</div>
+              <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;color:#1e293b">
+                <span id="statusDot" style="width:10px;height:10px;border-radius:50%;background:#94a3b8;display:inline-block"></span>
+                <span id="statusText">Fuori servizio</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Reparto</div>
+              <div id="repartoLabel" style="font-weight:700;font-size:16px;color:#1e3a5f">—</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:16px;padding:14px 16px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="background:#fef3c7;color:#d97706;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">!</span>
+            <span style="font-weight:700;color:#b45309;font-size:14px">Modalità Sola Lettura</span>
+          </div>
+          <p style="font-size:13px;color:#92400e;line-height:1.55">L'unico modo per avviare o chiudere il turno è passare il badge RFID fisico sul lettore aziendale.</p>
+        </div>
+        <div style="text-align:center;padding:8px 0">
+          <span id="clock" style="font-size:54px;font-weight:800;color:#1e3a5f;letter-spacing:-2px;font-variant-numeric:tabular-nums"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="card" style="text-align:center;padding:14px 8px;margin-bottom:0">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">OGGI</div>
+            <div id="statToday" style="font-size:17px;font-weight:700;color:#1e3a5f">0:00</div>
+          </div>
+          <div class="card" style="text-align:center;padding:14px 8px;border:2px solid #1e3a5f;margin-bottom:0">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">SETTIMANA</div>
+            <div id="statWeek" style="font-size:17px;font-weight:700;color:#1e3a5f">0:00</div>
+          </div>
+          <div class="card" style="text-align:center;padding:14px 8px;margin-bottom:0">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">MESE</div>
+            <div id="statMonth" style="font-size:17px;font-weight:700;color:#1e3a5f">0:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ferie -->
+    <div class="screen" id="scr-ferie">
+      <div class="header">
+        <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+        <h1>Richiesta Permessi</h1>
+        <p>Ferie · ROL · Malattia</p>
+      </div>
+      <div class="body">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <span id="calTitle" style="font-weight:700;font-size:17px;color:#1e293b"></span>
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="calPrev()" style="background:#f1f5f9;border-radius:8px;width:32px;height:32px;font-size:18px">‹</button>
+              <button class="btn" onclick="calNext()" style="background:#f1f5f9;border-radius:8px;width:32px;height:32px;font-size:18px">›</button>
+            </div>
+          </div>
+          <div class="cal-grid" style="margin-bottom:8px">
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">L</div>
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">M</div>
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">M</div>
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">G</div>
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">V</div>
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">S</div>
+            <div style="font-size:12px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0">D</div>
+          </div>
+          <div class="cal-grid" id="calDays"></div>
+        </div>
+        <div class="card">
+          <div class="field-wrap">
+            <label class="lbl">Tipo richiesta</label>
+            <select id="fereTipo">
+              <option>Ferie</option><option>ROL</option><option>Malattia</option><option>Permesso</option>
+            </select>
+          </div>
+          <div class="field-wrap">
+            <label class="lbl">Note <span style="font-weight:400;color:#94a3b8">(opzionale)</span></label>
+            <textarea id="fereNote" placeholder="Es. Vacanza con la famiglia..."></textarea>
+          </div>
+          <button class="btn" id="fereBtn" onclick="sendFerie()" style="width:100%;padding:15px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border-radius:14px;font-size:16px;opacity:.5">
+            + Invia richiesta
+          </button>
+        </div>
+        <div id="fereList"></div>
+      </div>
+    </div>
+
+    <!-- Documenti -->
+    <div class="screen" id="scr-documenti">
+      <div class="header">
+        <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+        <h1>I miei Documenti</h1>
+        <p>Archivio personale</p>
+      </div>
+      <div class="body" id="docList"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN SCREENS -->
+  <div id="adm-screens" style="display:none">
+    <!-- Presenze -->
+    <div class="screen active" id="scr-presenze">
+      <div style="background:linear-gradient(160deg,#1e3a5f 0%,#2563eb 100%);color:#fff">
+        <div style="padding:24px 20px 16px">
+          <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+          <h1 style="font-size:26px;font-weight:800;margin:8px 0 4px">Dashboard Presenze</h1>
+          <p style="font-size:14px;opacity:.8;margin-bottom:16px">Aggiornato in tempo reale</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 16px 20px">
+          <div style="background:rgba(255,255,255,.13);border-radius:14px;padding:12px 8px;text-align:center">
+            <div style="font-size:28px;font-weight:800">5</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">PRESENTI ORA</div>
+          </div>
+          <div style="background:rgba(255,255,255,.92);border-radius:14px;padding:12px 8px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:#1e293b">1</div>
+            <div style="font-size:11px;color:#64748b;margin-top:2px">IN FERIE</div>
+          </div>
+          <div style="background:#fef3c7;border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="pendingCount" style="font-size:28px;font-weight:800;color:#d97706">0</div>
+            <div style="font-size:11px;color:#92400e;margin-top:2px">DA APPROVARE</div>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="sec-label">IN FABBRICA ORA</div>
+        <div id="presentList"></div>
+        <div class="sec-label">ASSENTI OGGI</div>
+        <div id="absentList"></div>
+      </div>
+    </div>
+
+    <!-- Approva accessi -->
+    <div class="screen" id="scr-accesso">
+      <div class="header">
+        <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+        <h1>Richieste di Accesso</h1>
+        <p id="accessCount">0 in sospeso</p>
+      </div>
+      <div class="body" id="accessList"></div>
+    </div>
+
+    <!-- Approva permessi -->
+    <div class="screen" id="scr-approva">
+      <div class="header">
+        <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+        <h1>Approvazioni</h1>
+        <p id="approvaCount">0 richieste</p>
+      </div>
+      <div class="body" id="approvaList"></div>
+    </div>
+
+    <!-- Report -->
+    <div class="screen" id="scr-report">
+      <div class="header">
+        <div class="co">⚙ Officine Meccaniche Lombardi S.r.l.</div>
+        <h1>Report Mensile</h1>
+        <p>Esportazione dati ore</p>
+      </div>
+      <div class="body">
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+            <div style="width:48px;height:48px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:22px">📊</div>
+            <div>
+              <div style="font-weight:700;font-size:16px;color:#1e293b">Report Giugno 2026</div>
+              <div style="font-size:13px;color:#94a3b8">6 dipendenti · 1.008 ore totali</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+            <div style="background:#f0f9ff;border-radius:12px;padding:12px">
+              <div style="font-size:12px;color:#94a3b8;margin-bottom:4px">Ore ordinarie</div>
+              <div style="font-weight:700;font-size:20px;color:#1e293b">944h</div>
+            </div>
+            <div style="background:#eff6ff;border-radius:12px;padding:12px">
+              <div style="font-size:12px;color:#94a3b8;margin-bottom:4px">Straordinari</div>
+              <div style="font-weight:700;font-size:20px;color:#2563eb">46h</div>
+            </div>
+          </div>
+          <div style="background:#1e3a5f;border-radius:10px 10px 0 0;padding:10px 14px;display:grid;grid-template-columns:1fr 50px 50px 50px">
+            <div style="font-size:12px;font-weight:700;color:#fff">Dipendente</div>
+            <div style="font-size:12px;font-weight:700;color:#fff;text-align:right">Ord.</div>
+            <div style="font-size:12px;font-weight:700;color:#fff;text-align:right">Str.</div>
+            <div style="font-size:12px;font-weight:700;color:#fff;text-align:right">Tot.</div>
+          </div>
+          <div id="reportRows"></div>
+          <button class="btn" onclick="alert('Export simulato')" style="width:100%;margin-top:16px;padding:14px;background:#16a34a;border-radius:12px;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+            📥 Esporta ore mensili in Excel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar operaio -->
+  <div class="navbar" id="empNav">
+    <button class="nav-btn btn" onclick="showEmpTab('turno')" id="nav-turno" style="color:#2563eb">
+      <span class="ico">🏠</span>Turno
+    </button>
+    <button class="nav-btn btn" onclick="showEmpTab('ferie')" id="nav-ferie" style="color:#94a3b8">
+      <span class="ico">📅</span>Ferie
+    </button>
+    <button class="nav-btn btn" onclick="showEmpTab('documenti')" id="nav-documenti" style="color:#94a3b8">
+      <span class="ico">📄</span>Documenti
+    </button>
+  </div>
+
+  <!-- Navbar admin -->
+  <div class="navbar" id="admNav" style="display:none;grid-template-columns:repeat(4,1fr)">
+    <button class="nav-btn btn" onclick="showAdmTab('presenze')" id="nav-presenze" style="color:#2563eb">
+      <span class="ico">👥</span>Presenze
+    </button>
+    <button class="nav-btn btn" onclick="showAdmTab('accesso')" id="nav-accesso" style="color:#94a3b8;position:relative">
+      <span class="ico">🔑</span>Accessi
+      <span id="accessBadge" style="display:none;position:absolute;top:6px;right:6px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>
+    </button>
+    <button class="nav-btn btn" onclick="showAdmTab('approva')" id="nav-approva" style="color:#94a3b8">
+      <span class="ico">💼</span>Approva
+    </button>
+    <button class="nav-btn btn" onclick="showAdmTab('report')" id="nav-report" style="color:#94a3b8">
+      <span class="ico">📊</span>Report
+    </button>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding" style="display:none;max-width:430px;margin:0 auto;min-height:100vh;flex-direction:column">
+  <button class="admin-bar btn" onclick="toggleAdmin()" style="background:#1e3a5f">
+    <span>👤</span> PASSA A VISUALE ADMIN
+  </button>
+  <div id="ob-form">
+    <div style="background:linear-gradient(160deg,#1e3a5f 0%,#2563eb 100%);padding:48px 24px 36px;color:#fff;text-align:center">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px">⚙</div>
+      <div style="font-size:13px;opacity:.8;margin-bottom:8px">Officine Meccaniche Lombardi S.r.l.</div>
+      <h1 style="font-size:26px;font-weight:800;margin:0 0 8px">Benvenuto</h1>
+      <p style="font-size:14px;opacity:.8">Crea il tuo profilo per accedere all'app</p>
+    </div>
+    <div style="padding:24px 20px">
+      <div class="card">
+        <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:20px">Dati personali</div>
+        <div class="field-wrap"><label class="lbl">Nome</label><input id="ob-nome" placeholder="Es. Marco"></div>
+        <div class="field-wrap"><label class="lbl">Cognome</label><input id="ob-cognome" placeholder="Es. Rossi"></div>
+        <div class="field-wrap"><label class="lbl">Email aziendale</label><input id="ob-email" type="email" placeholder="mario.rossi@officine.it"></div>
+        <div class="field-wrap" style="margin-bottom:24px">
+          <label class="lbl">Reparto</label>
+          <select id="ob-reparto">
+            <option value="">Seleziona reparto...</option>
+            <option>TRASFORMAZIONE</option>
+            <option>CONFEZIONAMENTO</option>
+            <option>REPARTO TECNICO</option>
+            <option>UFFICI</option>
+            <option>LOGISTICA</option>
+          </select>
+        </div>
+        <div id="ob-error" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#b91c1c"></div>
+        <button class="btn" onclick="submitRegistration()" style="width:100%;padding:15px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border-radius:14px;font-size:16px">
+          Invia richiesta di accesso →
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="ob-pending" style="display:none;min-height:80vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:24px">⏳</div>
+    <h2 style="font-size:22px;font-weight:800;color:#1e293b;text-align:center;margin-bottom:12px">Richiesta inviata</h2>
+    <p style="font-size:15px;color:#64748b;text-align:center;line-height:1.6;margin-bottom:24px">Il tuo profilo è in fase di approvazione da parte della direzione.</p>
+    <div class="card" style="width:100%">
+      <div id="ob-summary"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;background:#fef9c3;border-radius:10px">
+        <span style="font-size:16px">⏳</span>
+        <span style="font-size:13px;color:#a16207;font-weight:600">In attesa di approvazione</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const SUPA_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+
+const MONTHS = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+const DAYS_FULL = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+
+const COLLEAGUES = [
+  {name:"Domenico Russo",ini:"DR",rep:"TRASFORMAZIONE",clockIn:"07:58",present:true},
+  {name:"Maria Bianchi",ini:"MB",rep:"CONFEZIONAMENTO",clockIn:"08:02",present:true},
+  {name:"Luca Ferrari",ini:"LF",rep:"REPARTO TECNICO",clockIn:"08:00",present:true},
+  {name:"Giuseppe Conti",ini:"GC",rep:"LOGISTICA",clockIn:"07:45",present:true},
+  {name:"Antonio Greco",ini:"AG",rep:"TRASFORMAZIONE",clockIn:"08:10",present:true},
+  {name:"Sara Romano",ini:"SR",rep:"UFFICI",absent:"Ferie"},
+  {name:"Marco Esposito",ini:"ME",rep:"REPARTO TECNICO",absent:"Permesso ROL"},
+];
+
+const REPORT_DATA = [
+  {name:"Domenico Russo",rep:"TRASFORMAZIONE",ord:168,str:12},
+  {name:"Maria Bianchi",rep:"CONFEZIONAMENTO",ord:160,str:4},
+  {name:"Luca Ferrari",rep:"REPARTO TECNICO",ord:168,str:8},
+  {name:"Antonio Greco",rep:"TRASFORMAZIONE",ord:168,str:16},
+  {name:"Sara Romano",rep:"UFFICI",ord:120,str:0},
+  {name:"Marco Esposito",rep:"REPARTO TECNICO",ord:144,str:6},
+];
+
+const DOCS = [
+  {name:"Busta Paga — Maggio 2026",size:"248 KB"},
+  {name:"Busta Paga — Aprile 2026",size:"241 KB"},
+  {name:"Certificazione Unica 2025",size:"612 KB"},
+  {name:"Modello 730 — 2025",size:"488 KB"},
+  {name:"Contratto di lavoro",size:"1.2 MB"},
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let isAdmin = false;
+let profile = JSON.parse(localStorage.getItem("profile") || "null");
+let shifts = JSON.parse(localStorage.getItem("shifts") || "[]");
+let leaveRequests = JSON.parse(localStorage.getItem("leaveRequests") || "[]");
+let accessRequests = JSON.parse(localStorage.getItem("accessRequests") || "[]");
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selDay = null;
+
+// ── DB ─────────────────────────────────────────────────────────────────────────
+async function dbFetch(path, opts) {
+  opts = opts || {};
+  try {
+    const r = await fetch(SUPA_URL + "/rest/v1/" + path, {
+      headers: {"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json","Prefer":opts.prefer||"return=representation"},
+      method: opts.method || "GET",
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    const t = await r.text();
+    return t ? JSON.parse(t) : [];
+  } catch(e) { console.error("DB error:", e); return null; }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function p2(n){return String(n).padStart(2,"0")}
+function msToHM(ms){if(ms<=0)return"0:00";const m=Math.floor(ms/60000),h=Math.floor(m/60);return h+":"+p2(m%60)}
+function avatarColor(ini){const c=["#1e3a5f","#2563eb","#0f766e","#7c3aed","#b45309","#be123c"];let h=0;for(const x of ini)h=(h*31+x.charCodeAt(0))%c.length;return c[h]}
+function startDay(ts){const d=new Date(ts);d.setHours(0,0,0,0);return d.getTime()}
+function startWeek(ts){const d=new Date(ts);const w=d.getDay();d.setDate(d.getDate()-(w===0?6:w-1));d.setHours(0,0,0,0);return d.getTime()}
+function startMonth(ts){const d=new Date(ts);d.setDate(1);d.setHours(0,0,0,0);return d.getTime()}
+
+function computeStats(){
+  const now=Date.now(),tD=startDay(now),tW=startWeek(now),tM=startMonth(now);
+  let td=0,tw=0,tm=0;
+  for(const s of shifts){const end=s.end||now,dur=end-s.start;if(dur<=0)continue;if(s.start>=tD)td+=dur;if(s.start>=tW)tw+=dur;if(s.start>=tM)tm+=dur;}
+  return{td,tw,tm};
+}
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock(){
+  const now = new Date();
+  const el = document.getElementById("clock");
+  if(el) el.textContent = p2(now.getHours())+":"+p2(now.getMinutes())+":"+p2(now.getSeconds());
+  if(document.getElementById("dateLabel"))
+    document.getElementById("dateLabel").textContent = DAYS_FULL[now.getDay()]+" "+now.getDate()+" "+MONTHS[now.getMonth()].toLowerCase();
+  const s = computeStats();
+  if(document.getElementById("statToday")) document.getElementById("statToday").textContent = msToHM(s.td);
+  if(document.getElementById("statWeek")) document.getElementById("statWeek").textContent = msToHM(s.tw);
+  if(document.getElementById("statMonth")) document.getElementById("statMonth").textContent = msToHM(s.tm);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function init(){
+  if(!profile){
+    document.getElementById("app").style.display="none";
+    document.getElementById("onboarding").style.display="flex";
+    return;
+  }
+  document.getElementById("app").style.display="flex";
+  document.getElementById("onboarding").style.display="none";
+  if(profile.approved){
+    document.getElementById("greeting").textContent = "Ciao, "+profile.nome+"!";
+    document.getElementById("repartoLabel").textContent = profile.reparto;
+    renderDocs();
+    renderCalendar();
+    renderColleagues();
+    renderReport();
+  } else {
+    showPending();
+  }
+  updateAccessBadge();
+}
+
+function showPending(){
+  document.getElementById("app").style.display="none";
+  document.getElementById("onboarding").style.display="flex";
+  document.getElementById("ob-form").style.display="none";
+  const pend = document.getElementById("ob-pending");
+  pend.style.display="flex";
+  document.getElementById("ob-summary").innerHTML =
+    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="font-size:13px;color:#64748b">Nome</span><span style="font-size:13px;font-weight:600;color:#1e293b">${profile.nome} ${profile.cognome}</span></div>
+     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="font-size:13px;color:#64748b">Email</span><span style="font-size:13px;font-weight:600;color:#1e293b">${profile.email}</span></div>
+     <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:13px;color:#64748b">Reparto</span><span style="font-size:13px;font-weight:600;color:#1e293b">${profile.reparto}</span></div>`;
+}
+
+// ── Registration ──────────────────────────────────────────────────────────────
+async function submitRegistration(){
+  const nome=document.getElementById("ob-nome").value.trim();
+  const cognome=document.getElementById("ob-cognome").value.trim();
+  const email=document.getElementById("ob-email").value.trim();
+  const reparto=document.getElementById("ob-reparto").value;
+  const errEl=document.getElementById("ob-error");
+  if(!nome||!cognome||!email||!reparto){errEl.style.display="block";errEl.textContent="Compila tutti i campi";return;}
+  if(!email.includes("@")){errEl.style.display="block";errEl.textContent="Email non valida";return;}
+  errEl.style.display="none";
+  const newProfile={id:Date.now(),nome,cognome,email,reparto,approved:false};
+  profile=newProfile;
+  localStorage.setItem("profile",JSON.stringify(profile));
+  const req={id:Date.now(),nome,cognome,email,reparto,timestamp:Date.now()};
+  accessRequests.push(req);
+  localStorage.setItem("accessRequests",JSON.stringify(accessRequests));
+  // Try to save to Supabase
+  await dbFetch("profiles",{method:"POST",body:{nome,cognome,email,reparto,approved:false}});
+  showPending();
+  updateAccessBadge();
+}
+
+// ── Admin toggle ──────────────────────────────────────────────────────────────
+function toggleAdmin(){
+  isAdmin=!isAdmin;
+  const bar=document.getElementById("adminBar");
+  const empS=document.getElementById("emp-screens");
+  const admS=document.getElementById("adm-screens");
+  const empN=document.getElementById("empNav");
+  const admN=document.getElementById("admNav");
+  if(isAdmin){
+    bar.style.background="#d97706";
+    bar.innerHTML="<span>🪖</span> PASSA A VISUALE OPERAIO";
+    empS.style.display="none";admS.style.display="block";
+    empN.style.display="none";admN.style.display="grid";
+    renderAccessList();renderApprova();
+  } else {
+    bar.style.background="#1e3a5f";
+    bar.innerHTML="<span>👤</span> PASSA A VISUALE ADMIN";
+    empS.style.display="block";admS.style.display="none";
+    empN.style.display="grid";admN.style.display="none";
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function showEmpTab(tab){
+  ["turno","ferie","documenti"].forEach(t=>{
+    document.getElementById("scr-"+t).classList.toggle("active",t===tab);
+    const n=document.getElementById("nav-"+t);
+    if(n)n.style.color=t===tab?"#2563eb":"#94a3b8";
+  });
+}
+function showAdmTab(tab){
+  ["presenze","accesso","approva","report"].forEach(t=>{
+    document.getElementById("scr-"+t).classList.toggle("active",t===tab);
+    const n=document.getElementById("nav-"+t);
+    if(n)n.style.color=t===tab?"#2563eb":"#94a3b8";
+  });
+}
+
+// ── Colleagues ────────────────────────────────────────────────────────────────
+function renderColleagues(){
+  const pList=document.getElementById("presentList");
+  const aList=document.getElementById("absentList");
+  if(!pList||!aList)return;
+  pList.innerHTML=COLLEAGUES.filter(c=>c.present).map(c=>`
+    <div class="card" style="display:flex;align-items:center;gap:14px">
+      <div class="avatar" style="width:44px;height:44px;background:${avatarColor(c.ini)};font-size:16px">${c.ini}</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px;color:#1e293b">${c.name}</div><div style="font-size:13px;color:#64748b">${c.rep}</div></div>
+      <div style="text-align:right"><span style="background:#dcfce7;color:#166534;font-size:12px;font-weight:700;border-radius:20px;padding:3px 12px;display:block;margin-bottom:4px">Presente</span><div style="font-size:12px;color:#94a3b8">dalle ${c.clockIn}</div></div>
+    </div>`).join("");
+  aList.innerHTML=COLLEAGUES.filter(c=>c.absent).map(c=>`
+    <div class="card" style="display:flex;align-items:center;gap:14px;opacity:.75">
+      <div class="avatar" style="width:44px;height:44px;background:#e2e8f0;color:#94a3b8;font-size:16px">${c.ini}</div>
+      <div><div style="font-weight:700;font-size:15px;color:#1e293b">${c.name}</div><div style="font-size:13px;color:#64748b">${c.absent}</div></div>
+    </div>`).join("");
+}
+
+// ── Docs ──────────────────────────────────────────────────────────────────────
+function renderDocs(){
+  const el=document.getElementById("docList");
+  if(!el)return;
+  el.innerHTML=DOCS.map(d=>`
+    <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+      <div style="width:42px;height:42px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">📄</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px;color:#1e293b">${d.name}</div><div style="font-size:12px;color:#94a3b8;margin-top:2px">PDF · ${d.size}</div></div>
+      <button class="btn" onclick="alert('Download: ${d.name}')" style="background:none;color:#2563eb;font-size:20px;padding:6px">⬇</button>
+    </div>`).join("");
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────────────
+function renderCalendar(){
+  const el=document.getElementById("calDays");
+  const title=document.getElementById("calTitle");
+  if(!el||!title)return;
+  title.textContent=MONTHS[calMonth]+" "+calYear;
+  const firstDow=new Date(calYear,calMonth,1).getDay();
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const offset=firstDow===0?6:firstDow-1;
+  const today=new Date();
+  const todayKey=today.getFullYear()+"-"+today.getMonth()+"-"+today.getDate();
+  let html="";
+  for(let i=0;i<offset;i++)html+="<div></div>";
+  for(let d=1;d<=dim;d++){
+    const key=calYear+"-"+calMonth+"-"+d;
+    const isTod=key===todayKey,isSel=selDay===d;
+    const bg=isSel?"#1e3a5f":isTod?"#dbeafe":"transparent";
+    const col=isSel?"#fff":isTod?"#2563eb":"#1e293b";
+    html+=`<button class="cal-day btn" onclick="selectDay(${d})" style="background:${bg};color:${col};font-weight:${isTod||isSel?700:400}">${d}</button>`;
+  }
+  el.innerHTML=html;
+  document.getElementById("fereBtn").style.opacity=selDay?1:.5;
+}
+function calPrev(){if(calMonth===0){calMonth=11;calYear--;}else calMonth--;renderCalendar()}
+function calNext(){if(calMonth===11){calMonth=0;calYear++;}else calMonth++;renderCalendar()}
+function selectDay(d){selDay=d;renderCalendar()}
+
+function sendFerie(){
+  if(!selDay)return;
+  const tipo=document.getElementById("fereTipo").value;
+  const note=document.getElementById("fereNote").value.trim();
+  const req={id:Date.now(),date:new Date(calYear,calMonth,selDay).getTime(),tipo,note};
+  leaveRequests.unshift(req);
+  localStorage.setItem("leaveRequests",JSON.stringify(leaveRequests));
+  if(profile)dbFetch("leave_requests",{method:"POST",body:{profile_id:profile.id||0,tipo,date:new Date(calYear,calMonth,selDay).toISOString().split("T")[0],note,status:"pending"}});
+  selDay=null;renderCalendar();renderFereList();
+  document.getElementById("fereNote").value="";
+}
+function renderFereList(){
+  const el=document.getElementById("fereList");
+  if(!el)return;
+  if(!leaveRequests.length){el.innerHTML="";return;}
+  el.innerHTML=`<div class="sec-label">RICHIESTE INVIATE</div>`+leaveRequests.map(r=>{
+    const d=new Date(r.date);
+    return`<div class="card" style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:600;font-size:14px;color:#1e293b">${r.tipo}</div><div style="font-size:13px;color:#64748b">${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}</div></div>
+      <span style="background:#fef9c3;color:#a16207;font-size:12px;font-weight:600;border-radius:20px;padding:3px 10px">In attesa</span>
+    </div>`;
+  }).join("");
+}
+
+// ── Access requests ───────────────────────────────────────────────────────────
+function updateAccessBadge(){
+  const badge=document.getElementById("accessBadge");
+  const count=document.getElementById("pendingCount");
+  if(!badge)return;
+  const n=accessRequests.length;
+  badge.textContent=n;
+  badge.style.display=n>0?"flex":"none";
+  if(count)count.textContent=n;
+}
+
+function renderAccessList(){
+  const el=document.getElementById("accessList");
+  const cnt=document.getElementById("accessCount");
+  if(!el)return;
+  if(cnt)cnt.textContent=accessRequests.length+" in sospeso";
+  if(!accessRequests.length){el.innerHTML='<div style="color:#94a3b8;text-align:center;padding:40px">Nessuna richiesta</div>';return;}
+  el.innerHTML=accessRequests.map(r=>`
+    <div class="card" id="acc-${r.id}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div class="avatar" style="width:46px;height:46px;background:#e0e7ff;color:#4338ca;font-size:16px">${r.nome[0]}${r.cognome[0]}</div>
+        <div><div style="font-weight:700;font-size:15px;color:#1e293b">${r.nome} ${r.cognome}</div><div style="font-size:13px;color:#64748b">${r.email}</div></div>
+      </div>
+      <span style="background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;border-radius:20px;padding:3px 12px;display:inline-block;margin-bottom:12px">${r.reparto}</span>
+      <div style="display:flex;gap:10px">
+        <button class="btn" onclick="rejectAccess(${r.id})" style="flex:1;background:#fff;border:1.5px solid #fca5a5;border-radius:10px;padding:10px;color:#ef4444;font-size:13px">✕ Rifiuta</button>
+        <button class="btn" onclick="approveAccess(${r.id})" style="flex:1;background:#16a34a;border-radius:10px;padding:10px;color:#fff;font-size:13px">✓ Approva</button>
+      </div>
+    </div>`).join("");
+}
+
+function approveAccess(id){
+  const req=accessRequests.find(r=>r.id===id);
+  if(!req)return;
+  const badgeId=(req.nome[0]+req.cognome[0]).toUpperCase()+"-"+(1000+Math.floor(Math.random()*9000));
+  if(profile&&profile.id===id||(!profile&&profile===null)){
+    const updated={...req,approved:true,badge_id:badgeId};
+    profile=updated;
+    localStorage.setItem("profile",JSON.stringify(profile));
+    dbFetch("profiles?email=eq."+encodeURIComponent(req.email),{method:"PATCH",body:{approved:true,badge_id:badgeId},prefer:"return=minimal"});
+  }
+  accessRequests=accessRequests.filter(r=>r.id!==id);
+  localStorage.setItem("accessRequests",JSON.stringify(accessRequests));
+  renderAccessList();updateAccessBadge();
+  alert("✓ Accesso approvato! Badge ID: "+badgeId);
+}
+
+function rejectAccess(id){
+  accessRequests=accessRequests.filter(r=>r.id!==id);
+  localStorage.setItem("accessRequests",JSON.stringify(accessRequests));
+  if(profile&&!profile.approved){profile=null;localStorage.removeItem("profile");}
+  renderAccessList();updateAccessBadge();
+}
+
+// ── Approva permessi ──────────────────────────────────────────────────────────
+function renderApprova(){
+  const el=document.getElementById("approvaList");
+  const cnt=document.getElementById("approvaCount");
+  if(!el)return;
+  const pending=leaveRequests.filter(r=>!r.decided);
+  if(cnt)cnt.textContent=pending.length+" richieste in sospeso";
+  if(!pending.length){el.innerHTML='<div style="color:#94a3b8;text-align:center;padding:32px">Nessuna richiesta</div>';return;}
+  const tipoBg={Ferie:"#dbeafe",Malattia:"#fee2e2","Permesso ROL":"#fef9c3",ROL:"#fef9c3",Permesso:"#f3e8ff"};
+  const tipoCol={Ferie:"#1d4ed8",Malattia:"#b91c1c","Permesso ROL":"#a16207",ROL:"#a16207",Permesso:"#7c3aed"};
+  el.innerHTML=pending.map(r=>{
+    const d=new Date(r.date);
+    const bg=tipoBg[r.tipo]||"#f1f5f9",col=tipoCol[r.tipo]||"#475569";
+    return`<div class="card" id="appr-${r.id}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="font-weight:700;font-size:15px;color:#1e293b">${profile&&profile.nome?profile.nome+" "+profile.cognome:"Dipendente"}</div>
+        <span style="background:${bg};color:${col};font-size:12px;font-weight:700;border-radius:20px;padding:3px 12px">${r.tipo}</span>
+      </div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:${r.note?6:12}px">${d.getDate()}/${p2(d.getMonth()+1)}/${d.getFullYear()}</div>
+      ${r.note?`<div style="font-size:13px;color:#475569;font-style:italic;margin-bottom:12px">"${r.note}"</div>`:""}
+      <div style="display:flex;gap:10px">
+        <button class="btn" onclick="decideApprova(${r.id},'rejected')" style="flex:1;background:#fff;border:1.5px solid #fca5a5;border-radius:10px;padding:10px;color:#ef4444;font-size:13px">✕ Rifiuta</button>
+        <button class="btn" onclick="decideApprova(${r.id},'approved')" style="flex:1;background:#16a34a;border-radius:10px;padding:10px;color:#fff;font-size:13px">✓ Approva</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function decideApprova(id,status){
+  leaveRequests=leaveRequests.map(r=>r.id===id?{...r,decided:true,status}:r);
+  localStorage.setItem("leaveRequests",JSON.stringify(leaveRequests));
+  renderApprova();
+}
+
+// ── Report ────────────────────────────────────────────────────────────────────
+function renderReport(){
+  const el=document.getElementById("reportRows");
+  if(!el)return;
+  el.innerHTML=REPORT_DATA.map((r,i)=>`
+    <div style="padding:10px 14px;display:grid;grid-template-columns:1fr 50px 50px 50px;background:${i%2===0?"#fff":"#f8fafc"};border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:${i===REPORT_DATA.length-1?"1px solid #e2e8f0":"none"}">
+      <div><div style="font-weight:600;font-size:13px;color:#1e293b">${r.name}</div><div style="font-size:11px;color:#94a3b8">${r.rep}</div></div>
+      <div style="text-align:right;font-size:14px;color:#1e293b;font-weight:500;align-self:center">${r.ord}</div>
+      <div style="text-align:right;font-size:14px;color:${r.str>0?"#2563eb":"#94a3b8"};font-weight:${r.str>0?700:400};align-self:center">${r.str}</div>
+      <div style="text-align:right;font-size:14px;color:#1e293b;font-weight:700;align-self:center">${r.ord+r.str}</div>
+    </div>`).join("");
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+init();
+renderFereList();
+renderColleagues();
+renderReport();
+</script>
+</body>
+</html>
