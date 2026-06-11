@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Officine Lombardi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid #334155;
+            height: fit-content;
+            margin-top: 10px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Ottimizzazione schede per mobile */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            background: #0f172a;
+            color: #38bdf8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: #e2e8f0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: 110px;
+            padding: 8px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+
+        button {
+            padding: 8px 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: background 0.2s;
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: #059669;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #94a3b8;
+            padding: 30px 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Approvazione Operai</h1>
+    <p class="subtitle">Assegna il badge e abilita i profili alla timbratura</p>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cognome</th>
+                    <th>Reparto</th>
+                    <th>Cod. Badge</th>
+                    <th>Azione</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td colspan="5" class="no-data">Caricamento richieste in corso...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Configurazione Supabase basata sul tuo database bzquqzgaaszguzcmvgbl
+    const SUPABASE_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+    const clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function caricaRichieste() {
+        const { data, error } = await clientSupabase
+            .from('Operai')
+            .select('*')
+            .eq('approvato', false);
+
+        if (error) {
+            console.error("Errore caricamento:", error);
+            document.getElementById('tableBody').innerHTML = `<tr><td colspan="5" class="no-data" style="color: #ef4444;">Errore nel caricamento dei dati.</td></tr>`;
+            return;
+        }
+
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="no-data">Nessuna richiesta di iscrizione pendente.</td></tr>';
+            return;
+        }
+
+        data.forEach(operaio => {
+            const row = `
+                <tr>
+                    <td><strong>${operaio.nome}</strong></td>
+                    <td>${operaio.cognome}</td>
+                    <td style="font-size: 12px; color: #94a3b8;">${operaio.reparto}</td>
+                    <td><input type="text" id="badge-${operaio.id}" placeholder="Es: 1024" inputmode="numeric"></td>
+                    <td><button onclick="approvaOperaio(${operaio.id})">APPROVA</button></td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    async function approvaOperaio(id) {
+        const badgeCode = document.getElementById(`badge-${id}`).value.trim();
+        
+        if (!badgeCode) {
+            alert("Attenzione: Inserisci un numero di badge prima di confermare!");
+            return;
+        }
+
+        const { error } = await clientSupabase
+            .from('Operai')
+            .update({ 
+                approvato: true, 
+                badge_id: badgeCode
+            })
+            .eq('id', id);
+
+        if (error) {
+            alert("Errore durante l'approvazione: " + error.message);
+        } else {
+            alert("Profilo attivato e Badge associato con successo!");
+            caricaRichieste(); 
+        }
+    }
+
+    // Esecuzione al caricamento della pagina
+    caricaRichieste();
+</script>
+
+</body>
+</html>
