@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Presenze - Officine Lombardi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid #334155;
+            height: fit-content;
+            margin-top: 10px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .tab-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
+            border-color: #38bdf8;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .data-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .operaio-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-ingresso { background: #065f46; color: #34d399; }
+        .status-uscita { background: #991b1b; color: #f87171; }
+        .badge-reparto { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+
+        .card-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        .time-highlight {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #94a3b8;
+            padding: 30px 10px;
+            font-style: italic;
+        }
+
+        .nav-links {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            border-top: 1px solid #334155;
+            padding-top: 15px;
+        }
+
+        .nav-links a { color: #64748b; text-decoration: none; }
+        .nav-links a:hover { color: #38bdf8; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Registro Officine Lombardi</h1>
+    <p class="subtitle">Monitoraggio presenze e anagrafica operai</p>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('live')">🔴 Live Timbrature</button>
+        <button class="tab-btn" onclick="switchTab('operai')">👥 Elenco Operai</button>
+    </div>
+
+    <div id="tab-live" class="tab-content active">
+        <div class="cards-list" id="liveContainer">
+            <div class="no-data">Caricamento timbrature in corso...</div>
+        </div>
+    </div>
+
+    <div id="tab-operai" class="tab-content">
+        <div class="cards-list" id="operaiContainer">
+            <div class="no-data">Caricamento elenco operai...</div>
+        </div>
+    </div>
+
+    <div class="nav-links">
+        <a href="admin.html">← Richieste Approvazione</a>
+        <a href="index.html">Terminale Marcatore →</a>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+    const clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        if (tabName === 'live') {
+            document.querySelector('[onclick="switchTab(\'live\')"]').classList.add('active');
+            document.getElementById('tab-live').classList.add('active');
+            caricaTimbratureLive();
+        } else {
+            document.querySelector('[onclick="switchTab(\'operai\')"]').classList.add('active');
+            document.getElementById('tab-operai').classList.add('active');
+            caricaOperaiAttivi();
+        }
+    }
+
+    // Carica lo storico delle timbrature
+    async function caricaTimbratureLive() {
+        const container = document.getElementById('liveContainer');
+        
+        const { data, error } = await clientSupabase
+            .from('Timbrature')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(40);
+
+        if (error) {
+            console.error(error);
+            container.innerHTML = '<div class="no-data" style="color: #ef4444;">Errore di caricamento dati. Verificare la tabella Timbrature.</div>';
+            return;
+        }
+
+        if (data.length === 0) {
+            container.innerHTML = '<div class="no-data">Nessuna timbratura registrata nel database.</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        data.forEach(timb => {
+            const dataOra = new Date(timb.created_at);
+            const oraLeggibile = dataOra.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const giornoLeggibile = dataOra.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+            
+            const classeStato = timb.tipo === 'INGRESSO' ? 'status-ingresso' : 'status-uscita';
+
+            const cardHtml = `
+                <div class="data-card">
+                    <div class="card-header">
+                        <span class="operaio-name">${timb.nome_operaio}</span>
+                        <span class="badge-status ${classeStato}">${timb.tipo}</span>
+                    </div>
+                    <div class="card-details">
+                        <span>Badge: <strong style="color: #fff;">${timb.Badge_id || timb.badge_id || 'N/D'}</strong></span>
+                        <span>Il ${giornoLeggibile} alle <span class="time-highlight">${oraLeggibile}</span></span>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+        });
+    }
+
+    // Carica gli operai attivi (Usa "Badge_id" con la B maiuscola come da database)
+    async function caricaOperaiAttivi() {
+        const container = document.getElementById('operaiContainer');
+
+        const { data, error } = await clientSupabase
+            .from('Operai')
+            .select('*')
+            .eq('approvato', true)
+            .order('cognome', { ascending: true });
+
+        if (error) {
+            console.error(error);
+            container.innerHTML = '<div class="no-data" style="color: #ef4444;">Errore nel recupero degli operai.</div>';
+            return;
+        }
+
+        if (data.length === 0) {
+            container.innerHTML = '<div class="no-data">Nessun operaio attualmente attivo.</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        data.forEach(op => {
+            // Legge Badge_id sia con la maiuscola che con la minuscola per sicurezza
+            const idBadge = op.Badge_id || op.badge_id || 'N/D';
+            
+            const cardHtml = `
+                <div class="data-card" style="border-left: 4px solid #38bdf8;">
+                    <div class="card-header">
+                        <span class="operaio-name">${op.nome} ${op.cognome}</span>
+                        <span class="badge-status badge-reparto">${op.reparto}</span>
+                    </div>
+                    <div class="card-details">
+                        <span>Codice Badge Associato:</span>
+                        <span class="time-highlight" style="font-size: 15px;">ID: ${idBadge}</span>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+        });
+    }
+
+    // Avvio automatico delle timbrature
+    caricaTimbratureLive();
+</script>
+
+</body>
+</html>
