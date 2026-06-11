@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminale</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; margin: 0; }
+        input { padding: 15px; margin-bottom: 15px; border-radius: 8px; border: none; text-align: center; font-size: 18px; width: 80%; max-width: 300px; color: black; }
+        button { padding: 15px 30px; border-radius: 8px; border: none; background: #22c55e; color: white; font-weight: bold; cursor: pointer; font-size: 18px; }
+        #feedback { margin-top: 20px; font-weight: bold; padding: 10px; }
+    </style>
+</head>
+<body>
+    <input type="text" id="badge" placeholder="ID Badge (es: 022)">
+    <button id="btnIngresso">INGRESSO</button>
+    <div id="feedback"></div>
+
+    <script>
+        const supabase = supabase.createClient("https://bzquqzgaaszguzcmvgbl.supabase.co", "Sb_publishable_0RTF7LZGsbwmPafqzlz1yw_SatdIruX");
+
+        document.getElementById('btnIngresso').addEventListener('click', async () => {
+            const badge = document.getElementById('badge').value.trim();
+            const feedback = document.getElementById('feedback');
+            
+            if(!badge) {
+                feedback.innerText = "Inserisci un ID!";
+                return;
+            }
+
+            feedback.innerText = "Connessione...";
+
+            try {
+                const { data, error } = await supabase.from('Operai').select('*').eq('badge_id', badge).single();
+
+                if (error) throw error;
+                if (!data || !data.approvato) throw new Error("Non autorizzato");
+
+                const { error: insError } = await supabase.from('timbrature').insert([{ badge_id: badge, tipo: 'INGRESSO', nome_operaio: data.nome }]);
+                
+                if (insError) throw insError;
+
+                feedback.style.color = "#22c55e";
+                feedback.innerText = "✔ Benvenuto " + data.nome;
+                document.getElementById('badge').value = "";
+            } catch (e) {
+                feedback.style.color = "#ef4444";
+                feedback.innerText = "❌ Errore: " + e.message;
+            }
+        });
+    </script>
+</body>
+</html>
