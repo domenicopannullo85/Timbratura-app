@@ -2,266 +2,72 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Officine Lombardi</title>
+    <title>Pannello Admin - Officine Lombardi</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #0f172a;
-            color: #f1f5f9;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 850px;
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border: 1px solid #334155;
-            height: fit-content;
-            margin-top: 10px;
-        }
-
-        h1 {
-            font-size: 22px;
-            color: #ffffff;
-            text-align: center;
-            margin-bottom: 5px;
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        /* Layout Desktop (Tabella nascosta di base su mobile) */
-        .table-responsive {
-            display: none;
-            width: 100%;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        th, td {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid #334155;
-        }
-
-        th {
-            background: #0f172a;
-            color: #38bdf8;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-        }
-
-        /* Layout Mobile (Card verticali) */
-        .cards-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .operaio-card {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .card-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .card-label {
-            color: #94a3b8;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            align-items: center;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #ffffff;
-            font-size: 14px;
-        }
-
-        button {
-            padding: 10px 16px;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #059669;
-        }
-
-        .no-data {
-            text-align: center;
-            color: #94a3b8;
-            padding: 30px 10px;
-            font-style: italic;
-        }
-
-        /* Switch responsive corretto */
-        @media (min-width: 600px) {
-            .table-responsive { display: block; }
-            .cards-container { display: none; }
-            input[type="text"] { max-width: 110px; background: #0f172a; }
-        }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f4f9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        button { padding: 8px 16px; cursor: pointer; background: #22c55e; color: white; border: none; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #16a34a; }
     </style>
 </head>
 <body>
+    <h1>Timbrature in attesa di approvazione</h1>
+    <table id="adminTable">
+        <thead>
+            <tr><th>ID</th><th>Data/Ora</th><th>Azione</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-<div class="container">
-    <h1>Approvazione Operai</h1>
-    <p class="subtitle">Assegna il badge e abilita i profili alla timbratura</p>
-    
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Cognome</th>
-                    <th>Reparto</th>
-                    <th>Cod. Badge</th>
-                    <th>Azione</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
+    <script>
+        // La tua URL Supabase
+        const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
+        // Inserisci qui la tua Anon Key (presa dal progetto Supabase > Project Settings > API)
+        const supabaseKey = 'TUA_ANON_KEY_QUI';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    <div class="cards-container" id="cardsContainer">
-        <div class="no-data">Caricamento richieste in corso...</div>
-    </div>
-</div>
+        async function caricaDati() {
+            // Legge solo le righe dove approvato è FALSE
+            const { data, error } = await supabase
+                .from('timbrature')
+                .select('*')
+                .eq('approvato', false)
+                .order('created_at', { ascending: false });
 
-<script>
-    const SUPABASE_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
-    const clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    async function caricaRichieste() {
-        const { data, error } = await clientSupabase
-            .from('Operai')
-            .select('*')
-            .eq('approvato', false);
-
-        if (error) {
-            console.error("Errore caricamento:", error);
-            return;
+            const tbody = document.querySelector('#adminTable tbody');
+            tbody.innerHTML = '';
+            
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    tbody.innerHTML += `<tr>
+                        <td>${item.id}</td>
+                        <td>${new Date(item.created_at).toLocaleString()}</td>
+                        <td><button onclick="approva(${item.id})">Approva</button></td>
+                    </tr>`;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3">Nessuna timbratura in attesa.</td></tr>';
+            }
         }
 
-        const tableBody = document.getElementById('tableBody');
-        const cardsContainer = document.getElementById('cardsContainer');
-        
-        tableBody.innerHTML = '';
-        cardsContainer.innerHTML = '';
-
-        if (data.length === 0) {
-            const vuoto = '<tr><td colspan="5" class="no-data">Nessuna richiesta di iscrizione pendente.</td></tr>';
-            tableBody.innerHTML = vuoto;
-            cardsContainer.innerHTML = '<div class="no-data">Nessuna richiesta di iscrizione pendente.</div>';
-            return;
+        async function approva(id) {
+            // Imposta approvato a TRUE
+            const { error } = await supabase
+                .from('timbrature')
+                .update({ approvato: true })
+                .eq('id', id);
+            
+            if (error) {
+                alert("Errore nell'approvazione: " + error.message);
+            } else {
+                caricaDati(); // Ricarica la lista dopo l'azione
+            }
         }
 
-        data.forEach(operaio => {
-            // Desktop row
-            const row = `
-                <tr>
-                    <td><strong>${operaio.nome}</strong></td>
-                    <td>${operaio.cognome}</td>
-                    <td style="font-size: 12px; color: #94a3b8;">${operaio.reparto}</td>
-                    <td><input type="text" id="badge-table-${operaio.id}" placeholder="Es: 1234" inputmode="numeric"></td>
-                    <td><button onclick="approvaOperaio(${operaio.id}, 'table')">APPROVA</button></td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-
-            // Mobile card
-            const card = `
-                <div class="operaio-card">
-                    <div class="card-row"><span class="card-label">Nome:</span><strong>${operaio.nome} ${operaio.cognome}</strong></div>
-                    <div class="card-row"><span class="card-label">Reparto:</span><span>${operaio.reparto}</span></div>
-                    <div class="card-actions">
-                        <input type="text" id="badge-card-${operaio.id}" placeholder="Inserisci Cod. Badge" inputmode="numeric">
-                        <button onclick="approvaOperaio(${operaio.id}, 'card')">APPROVA</button>
-                    </div>
-                </div>
-            `;
-            cardsContainer.innerHTML += card;
-        });
-    }
-
-    async function approvaOperaio(id, tipo) {
-        const inputId = `badge-${tipo}-${id}`;
-        const badgeCode = document.getElementById(inputId).value.trim();
-        
-        if (!badgeCode) {
-            alert("Attenzione: Inserisci un numero di badge prima di confermare!");
-            return;
-        }
-
-        const { error } = await clientSupabase
-            .from('Operai')
-            .update({ 
-                approvato: true, 
-                badge_id: badgeCode
-            })
-            .eq('id', id);
-
-        if (error) {
-            alert("Errore durante l'approvazione: " + error.message);
-        } else {
-            alert("Profilo attivato e Badge associato con successo!");
-            caricaRichieste(); 
-        }
-    }
-
-    caricaRichieste();
-</script>
-
+        caricaDati();
+    </script>
 </body>
 </html>
