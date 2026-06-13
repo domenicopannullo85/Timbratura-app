@@ -2,52 +2,37 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Pannello Admin - Officine Lombardi</title>
+    <title>Debug Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f4f9; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #007bff; color: white; }
-    </style>
 </head>
 <body>
-    <h1>Timbrature in attesa di approvazione</h1>
-    <table id="adminTable">
-        <thead><tr><th>ID</th><th>Nome</th><th>Azione</th></tr></thead>
-        <tbody></tbody>
-    </table>
+    <h1>Stato Caricamento:</h1>
+    <p id="debug-msg">Caricamento in corso...</p>
+    <ul id="debug-list"></ul>
 
     <script>
         const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY'; 
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        async function caricaDati() {
-            const { data, error } = await supabase
-                .from('timbrature')
-                .select('*');
-
-            if (error) { 
-                console.error("Errore:", error); 
-                return; 
-            }
-
-            const tbody = document.querySelector('#adminTable tbody');
-            tbody.innerHTML = '';
+        async function testConnessione() {
+            const msg = document.getElementById('debug-msg');
+            const lista = document.getElementById('debug-list');
             
-            if (data && data.length > 0) {
-                data.forEach(item => {
-                    const row = `<tr><td>${item.id}</td><td>${item.nome_operaio}</td><td><button>Approva</button></td></tr>`;
-                    tbody.innerHTML += row;
-                });
+            const { data, error } = await supabase.from('timbrature').select('*');
+            
+            if (error) {
+                msg.innerText = "Errore: " + error.message;
             } else {
-                tbody.innerHTML = '<tr><td colspan="3">Nessun dato trovato nel database</td></tr>';
+                msg.innerText = "Dati trovati: " + data.length;
+                data.forEach(item => {
+                    let li = document.createElement('li');
+                    li.innerText = "Nome: " + item.nome_operaio; // Qui vediamo se legge il nome
+                    lista.appendChild(li);
+                });
             }
         }
-        caricaDati();
+        testConnessione();
     </script>
 </body>
 </html>
-
-
