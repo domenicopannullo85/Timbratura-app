@@ -1,38 +1,29 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Debug Admin</title>
+    <title>Test Minimo</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <h1>Stato Caricamento:</h1>
-    <p id="debug-msg">Caricamento in corso...</p>
-    <ul id="debug-list"></ul>
-
+    <h1 id="status">In attesa...</h1>
     <script>
+        // Mettiamo un messaggio immediato
+        document.getElementById('status').innerText = "Script avviato!";
+        
         const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY'; 
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        async function testConnessione() {
-            const msg = document.getElementById('debug-msg');
-            const lista = document.getElementById('debug-list');
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY';
+        
+        try {
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            document.getElementById('status').innerText = "Supabase inizializzato!";
             
-            const { data, error } = await supabase.from('timbrature').select('*');
-            
-            if (error) {
-                msg.innerText = "Errore: " + error.message;
-            } else {
-                msg.innerText = "Dati trovati: " + data.length;
-                data.forEach(item => {
-                    let li = document.createElement('li');
-                    li.innerText = "Nome: " + item.nome_operaio; // Qui vediamo se legge il nome
-                    lista.appendChild(li);
-                });
-            }
+            // Proviamo a leggere
+            supabase.from('timbrature').select('*').then(res => {
+                document.getElementById('status').innerText = "Risposta ricevuta! Dati: " + (res.data ? res.data.length : "Errore");
+            });
+        } catch (e) {
+            document.getElementById('status').innerText = "Errore critico: " + e.message;
         }
-        testConnessione();
     </script>
 </body>
 </html>
