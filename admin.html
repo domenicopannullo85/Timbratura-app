@@ -24,18 +24,43 @@
         const client = supabase.createClient(supabaseUrl, supabaseKey);
 
         window.onload = () => {
-            client.from('timbrature').select('*').then(({ data, error }) => {
+            // Carichiamo solo le timbrature NON ancora approvate
+            client.from('timbrature').select('*').eq('approvato', false).then(({ data, error }) => {
                 if (error) {
                     console.error("Errore:", error);
                     return;
                 }
                 const tbody = document.querySelector('#adminTable tbody');
                 tbody.innerHTML = '';
-                data.forEach(item => {
-                    tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.nome_operaio}</td><td><button>Approva</button></td></tr>`;
-                });
+                
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${item.id}</td>
+                                <td>${item.nome_operaio}</td>
+                                <td><button onclick="approvaTimbratura(${item.id})">Approva</button></td>
+                            </tr>`;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3">Nessuna timbratura in attesa</td></tr>';
+                }
             });
         };
+
+        async function approvaTimbratura(id) {
+            const { error } = await client
+                .from('timbrature')
+                .update({ approvato: true })
+                .eq('id', id);
+
+            if (error) {
+                alert("Errore durante l'approvazione: " + error.message);
+            } else {
+                alert("Timbratura approvata!");
+                location.reload(); // Ricarica la pagina per rimuovere la riga
+            }
+        }
     </script>
 </body>
 </html>
