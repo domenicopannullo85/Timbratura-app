@@ -26,8 +26,7 @@
         async function caricaDati() {
             const { data, error } = await supabase
                 .from('timbrature')
-                .select('*')
-                .eq('approvato', false);
+                .select('*');
 
             if (error) { 
                 console.error("Errore:", error); 
@@ -43,11 +42,12 @@
                     tbody.innerHTML += row;
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="3">Nessun dato trovato</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3">Nessun dato trovato nel database</td></tr>';
             }
         }
         caricaDati();
     </script>
 </body>
 </html>
+
 
