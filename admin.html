@@ -2,52 +2,40 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Pannello Admin</title>
+    <title>Pannello Admin - Officine Lombardi</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f4f9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+    </style>
 </head>
 <body>
-    <h1 id="status">Inizializzazione...</h1>
-    <table id="adminTable" border="1">
-        <thead><tr><th>ID</th><th>Nome</th></tr></thead>
+    <h1>Timbrature in attesa di approvazione</h1>
+    <table id="adminTable">
+        <thead><tr><th>ID</th><th>Nome</th><th>Azione</th></tr></thead>
         <tbody></tbody>
     </table>
 
     <script>
-        const status = document.getElementById('status');
+        const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY';
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Funzione sicura per avviare tutto
-        function avviaApp() {
-            if (typeof supabase === 'undefined') {
-                status.innerText = "Errore: Libreria Supabase non caricata!";
-                return;
-            }
-
-            const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY';
-            const client = supabase.createClient(supabaseUrl, supabaseKey);
-
-            status.innerText = "Caricamento dati...";
-
+        window.onload = () => {
             client.from('timbrature').select('*').then(({ data, error }) => {
                 if (error) {
-                    status.innerText = "Errore Database: " + error.message;
+                    console.error("Errore:", error);
                     return;
                 }
-
-                if (data && data.length > 0) {
-                    status.innerText = "Dati trovati: " + data.length;
-                    const tbody = document.querySelector('#adminTable tbody');
-                    data.forEach(item => {
-                        tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.nome_operaio}</td></tr>`;
-                    });
-                } else {
-                    status.innerText = "Nessun dato trovato nel database.";
-                }
+                const tbody = document.querySelector('#adminTable tbody');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.nome_operaio}</td><td><button>Approva</button></td></tr>`;
+                });
             });
-        }
-
-        // Aspetta che la pagina sia tutta pronta
-        window.onload = avviaApp;
+        };
     </script>
 </body>
 </html>
