@@ -6,45 +6,48 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <h1 id="status">Caricamento in corso...</h1>
+    <h1 id="status">Inizializzazione...</h1>
     <table id="adminTable" border="1">
         <thead><tr><th>ID</th><th>Nome</th></tr></thead>
         <tbody></tbody>
     </table>
 
     <script>
-        // 1. Creiamo la variabile fuori da tutto, così è globale
-        let supabase;
+        const status = document.getElementById('status');
 
-        // 2. Inizializziamo subito
-        const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY';
-        supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Funzione sicura per avviare tutto
+        function avviaApp() {
+            if (typeof supabase === 'undefined') {
+                status.innerText = "Errore: Libreria Supabase non caricata!";
+                return;
+            }
 
-        // 3. Ora carichiamo i dati
-        window.addEventListener('load', async () => {
-            const status = document.getElementById('status');
-            try {
-                status.innerText = "Recupero dati...";
-                
-                const { data, error } = await supabase.from('timbrature').select('*');
-                
-                if (error) throw error;
-                
+            const supabaseUrl = 'https://bzquqzgaaszguzcmvgbl.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY';
+            const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+            status.innerText = "Caricamento dati...";
+
+            client.from('timbrature').select('*').then(({ data, error }) => {
+                if (error) {
+                    status.innerText = "Errore Database: " + error.message;
+                    return;
+                }
+
                 if (data && data.length > 0) {
-                    status.innerText = "Dati caricati!";
+                    status.innerText = "Dati trovati: " + data.length;
                     const tbody = document.querySelector('#adminTable tbody');
-                    tbody.innerHTML = '';
                     data.forEach(item => {
                         tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.nome_operaio}</td></tr>`;
                     });
                 } else {
-                    status.innerText = "Nessun dato trovato.";
+                    status.innerText = "Nessun dato trovato nel database.";
                 }
-            } catch (err) {
-                status.innerText = "Errore: " + err.message;
-            }
-        });
+            });
+        }
+
+        // Aspetta che la pagina sia tutta pronta
+        window.onload = avviaApp;
     </script>
 </body>
 </html>
